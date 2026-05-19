@@ -1,51 +1,42 @@
-import dotenv from 'dotenv';
-dotenv.config();
-
-import http from 'http';
+import express from 'express';
 import cors from 'cors';
-import { Server } from 'socket.io';
+import helmet from 'helmet';
+import morgan from 'morgan';
+import path from 'path';
+import { fileURLToPath } from 'url';
+import authRoutes from './routes/authRoutes.js';
+import projectRoutes from './routes/projectRoutes.js';
+import taskRoutes from './routes/taskRoutes.js';
+import dashboardRoutes from './routes/dashboardRoutes.js';
+import userRoutes from './routes/userRoutes.js';
+import { notFound, errorHandler } from './middleware/errorMiddleware.js';
 
-import app from './src/app.js';
-import connectDB from './src/config/db.js';
+const app = express();
 
-const PORT = process.env.PORT || 5000;
-
-// Express CORS middleware
+app.use(helmet());
 app.use(cors({
   origin: process.env.CLIENT_URL || 'http://localhost:5173',
   credentials: true
 }));
+app.use(express.json({ limit: '1mb' }));
+app.use(morgan(process.env.NODE_ENV === 'production' ? 'combined' : 'dev'));
 
-const server = http.createServer(app);
+app.get('/api/health', (_req, res) => res.json({ status: 'ok' }));
+app.use('/api/auth', authRoutes);
+app.use('/api/projects', projectRoutes);
+app.use('/api/tasks', taskRoutes);
+app.use('/api/dashboard', dashboardRoutes);
+app.use('/api/users', userRoutes);
 
-// Socket.IO setup
-const io = new Server(server, {
-  cors: {
-    origin: process.env.CLIENT_URL || 'http://localhost:5173',
-    credentials: true
-  }
-});
+if (process.env.NODE_ENV === 'production') {
+  const __filename = fileURLToPath(import.meta.url);
+  const __dirname = path.dirname(__filename);
+  const frontendDist = path.resolve(__dirname, '../../frontend/dist');
+  app.use(express.static(frontendDist));
+  app.get('*', (_req, res) => res.sendFile(path.join(frontendDist, 'index.html')));
+}
 
-app.set('io', io);
+app.use(notFound);
+app.use(errorHandler);
 
-io.on('connection', (socket) => {
-  console.log('User connected:', socket.id);
-
-  socket.on('join-project', (projectId) => {
-    socket.join(projectId);
-  });
-
-  socket.on('leave-project', (projectId) => {
-    socket.leave(projectId);
-  });
-
-  socket.on('disconnect', () => {
-    console.log('User disconnected:', socket.id);
-  });
-});
-
-connectDB().then(() => {
-  server.listen(PORT, () => {
-    console.log(`TaskFlow API running on port ${PORT}`);
-  });
-});
+export default app;
