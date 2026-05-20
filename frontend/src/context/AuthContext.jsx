@@ -33,7 +33,7 @@ export const AuthProvider = ({ children }) => {
 
   const login = async (payload) => {
     try {
-      const { data } = await api.post('/auth/login', payload);
+      const { data } = await api.post('/api/auth/login', payload);
       persist(data);
       toast.success('Welcome back');
     } catch (error) {
@@ -44,7 +44,7 @@ export const AuthProvider = ({ children }) => {
 
   const register = async (payload) => {
     try {
-      const { data } = await api.post('/auth/register', payload);
+      const { data } = await api.post('/api/auth/register', payload);
       persist(data);
       toast.success('Workspace ready');
     } catch (error) {
