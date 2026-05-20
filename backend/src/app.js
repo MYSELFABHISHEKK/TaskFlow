@@ -28,13 +28,13 @@ app.use('/api/tasks', taskRoutes);
 app.use('/api/dashboard', dashboardRoutes);
 app.use('/api/users', userRoutes);
 
-if (process.env.NODE_ENV === 'production') {
-  const __filename = fileURLToPath(import.meta.url);
-  const __dirname = path.dirname(__filename);
-  const frontendDist = path.resolve(__dirname, '../../frontend/dist');
-  app.use(express.static(frontendDist));
-  app.get('*', (_req, res) => res.sendFile(path.join(frontendDist, 'index.html')));
-}
+// if (process.env.NODE_ENV === 'production') {
+//   const __filename = fileURLToPath(import.meta.url);
+//   const __dirname = path.dirname(__filename);
+//   const frontendDist = path.resolve(__dirname, '../../frontend/dist');
+//   app.use(express.static(frontendDist));
+//   app.get('*', (_req, res) => res.sendFile(path.join(frontendDist, 'index.html')));
+// }
 
 app.use(notFound);
 app.use(errorHandler);
