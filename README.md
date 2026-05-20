@@ -32,6 +32,12 @@ JWT_SECRET=replace-with-a-long-random-secret
 CLIENT_URL=http://localhost:5173
 ```
 
+For deployed frontends, set `CLIENT_URL` to the frontend origin only, without a path. Multiple origins can be comma-separated, for example:
+
+```env
+CLIENT_URL=https://task-flow-9sqx.vercel.app,https://your-preview.vercel.app
+```
+
 Frontend: copy `frontend/.env.example` to `frontend/.env`.
 
 ```env
@@ -129,7 +135,7 @@ All protected routes require `Authorization: Bearer <token>`.
    - `PORT=5000`
    - `MONGO_URI=<your MongoDB Atlas URI>`
    - `JWT_SECRET=<long random string>`
-   - `CLIENT_URL=<your Railway app URL>`
+   - `CLIENT_URL=<your frontend origin, without a trailing slash>`
    - `VITE_API_URL=/api`
 4. Set the build command:
 
