@@ -5,17 +5,26 @@ import api from '../services/api';
 const AuthContext = createContext(null);
 
 const getErrorMessage = (error, fallback) => {
-  if (!error.response) return 'Backend API is not running. Start the server on port 5000.';
-  return error.response.data?.message || fallback;
+  return error.response?.data?.message || fallback;
 };
 
 export const AuthProvider = ({ children }) => {
-  const [user, setUser] = useState(() => JSON.parse(localStorage.getItem('taskflow_user') || 'null'));
-  const [loading, setLoading] = useState(Boolean(localStorage.getItem('taskflow_token')));
+  const [user, setUser] = useState(() =>
+    JSON.parse(localStorage.getItem('taskflow_user') || 'null')
+  );
+
+  const [loading, setLoading] = useState(
+    Boolean(localStorage.getItem('taskflow_token'))
+  );
 
   useEffect(() => {
     const token = localStorage.getItem('taskflow_token');
-    if (!token) return;
+
+    if (!token) {
+      setLoading(false);
+      return;
+    }
+
     api.get('/auth/me')
       .then(({ data }) => {
         setUser(data.user);
@@ -33,7 +42,7 @@ export const AuthProvider = ({ children }) => {
 
   const login = async (payload) => {
     try {
-      const { data } = await api.post('/api/auth/login', payload);
+      const { data } = await api.post('/auth/login', payload);
       persist(data);
       toast.success('Welcome back');
     } catch (error) {
@@ -44,7 +53,7 @@ export const AuthProvider = ({ children }) => {
 
   const register = async (payload) => {
     try {
-      const { data } = await api.post('/api/auth/register', payload);
+      const { data } = await api.post('/auth/register', payload);
       persist(data);
       toast.success('Workspace ready');
     } catch (error) {
@@ -57,12 +66,26 @@ export const AuthProvider = ({ children }) => {
     localStorage.removeItem('taskflow_token');
     localStorage.removeItem('taskflow_user');
     setUser(null);
-    if (notify) toast.success('Signed out');
+
+    if (notify) {
+      toast.success('Signed out');
+    }
   };
 
-  const value = useMemo(() => ({ user, loading, login, register, logout, isAdmin: user?.role === 'admin' }), [user, loading]);
+  const value = useMemo(() => ({
+    user,
+    loading,
+    login,
+    register,
+    logout,
+    isAdmin: user?.role === 'admin',
+  }), [user, loading]);
 
-  return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
+  return (
+    <AuthContext.Provider value={value}>
+      {children}
+    </AuthContext.Provider>
+  );
 };
 
 export const useAuth = () => useContext(AuthContext);
